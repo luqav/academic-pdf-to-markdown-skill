@@ -13,6 +13,10 @@ Create a reusable text surrogate for a PDF while preserving the original as the 
 - Never use an LLM or vision model as the primary extraction engine.
 - Never silently omit unreadable, encrypted, image-only, or low-text pages.
 - Never reconstruct missing words, formulas, tables, citations, or footnotes from context.
+- Process only PDFs the user is legally entitled to access and transform.
+- Never bypass passwords, paywalls, DRM, or other access controls.
+- Never publish or redistribute a source PDF or converted full text without permission or another valid legal basis.
+- Respect licenses, machine-readable rights reservations, retention duties, and institutional access conditions.
 - Keep one `<!-- pdf-page: N -->` marker for every PDF page, including blank pages.
 - Bind the Markdown and report to the exact source bytes with SHA-256.
 - Cite the publication's printed or PDF page number, not Markdown line numbers. Treat page markers as navigation aids when printed numbering differs.
@@ -82,6 +86,14 @@ Keep these files together:
 - the `.conversion.json` integrity and quality report.
 
 Report the output paths, whether OCR ran, warned pages, and verification result. Explain that downstream agents may read and quote from the Markdown cache, but must preserve the page anchor and use the original publication metadata for formal citations.
+
+## Copyright and lawful use
+
+Treat conversion as copying and transformation, not as permission to reuse a work. Before processing, confirm that the PDF comes from a lawful source and that the intended conversion, storage, quotation, sharing, and retention are permitted by the applicable license, law, and institutional policy. Academic or non-commercial intent alone does not create blanket permission to reproduce or distribute complete works.
+
+Keep source PDFs and converted full texts private unless the user has permission or another valid legal basis to share them. Use only the portions needed when quoting or publishing research, preserve attribution and page references, and do not imply that this skill's MIT license covers third-party publications or derived text. Delete derived copies when the applicable legal basis, license, or retention period no longer permits keeping them.
+
+If authorization is uncertain—especially for complete books, journal issues, licensed databases, commercial use, public datasets, or collaborative repositories—stop before conversion or distribution and ask the user to confirm permission or obtain guidance from their library, institution, or qualified legal counsel.
 
 ## Downstream research use
 
