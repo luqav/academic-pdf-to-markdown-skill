@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -139,10 +140,10 @@ def extract_pdf(path: Path, min_chars: int) -> tuple[list[PageExtraction], dict[
     return pages, metadata, pdfplumber.__version__
 
 
-def command_version(command: str) -> str:
+def command_version(command: list[str]) -> str:
     try:
         result = subprocess.run(
-            [command, "--version"],
+            [*command, "--version"],
             check=True,
             capture_output=True,
             text=True,
@@ -152,16 +153,26 @@ def command_version(command: str) -> str:
     return (result.stdout or result.stderr).strip().splitlines()[0]
 
 
-def run_ocr(source: Path, target: Path, language: str) -> tuple[str, str]:
+def ocrmypdf_command() -> list[str]:
     executable = shutil.which("ocrmypdf")
-    if not executable:
-        raise ConversionError(
-            "Image-only pages require one-time OCR, but 'ocrmypdf' is unavailable. "
-            "Install OCRmyPDF or rerun with --ocr never to retain explicit warnings."
-        )
+    if executable:
+        return [executable]
+    try:
+        module_available = importlib.util.find_spec("ocrmypdf") is not None
+    except (ImportError, ValueError):
+        module_available = False
+    if module_available:
+        return [sys.executable, "-m", "ocrmypdf"]
+    raise ConversionError(
+        "Image-only pages require one-time OCR, but 'ocrmypdf' is unavailable. "
+        "Install OCRmyPDF or rerun with --ocr never to retain explicit warnings."
+    )
 
+
+def run_ocr(source: Path, target: Path, language: str) -> tuple[str, str]:
+    command_prefix = ocrmypdf_command()
     command = [
-        executable,
+        *command_prefix,
         "--skip-text",
         "--rotate-pages",
         "--deskew",
@@ -178,7 +189,7 @@ def run_ocr(source: Path, target: Path, language: str) -> tuple[str, str]:
         if len(diagnostic) > 1200:
             diagnostic = diagnostic[-1200:]
         raise ConversionError(f"OCRmyPDF failed: {diagnostic or 'unknown error'}")
-    return executable, command_version(executable)
+    return " ".join(command_prefix), command_version(command_prefix)
 
 
 def fence_for(text: str) -> str:
@@ -447,8 +458,12 @@ def check_runtime() -> int:
         checks.append(("pdfplumber", False, "missing"))
     else:
         checks.append(("pdfplumber", True, pdfplumber.__version__))
-    ocr = shutil.which("ocrmypdf")
-    checks.append(("OCRmyPDF (optional)", bool(ocr), command_version(ocr) if ocr else "missing"))
+    try:
+        ocr_command = ocrmypdf_command()
+    except ConversionError:
+        checks.append(("OCRmyPDF (optional)", False, "missing"))
+    else:
+        checks.append(("OCRmyPDF (optional)", True, command_version(ocr_command)))
 
     for label, available, detail in checks:
         status = "OK" if available else ("OPTIONAL" if label.startswith("OCRmyPDF") else "MISSING")

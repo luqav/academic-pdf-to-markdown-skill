@@ -18,16 +18,35 @@ The converter preserves physical page boundaries, extracted line order, and with
 
 Complex tables, equations, multi-column layouts, marginalia, and poor scans can still require visual checking against the original PDF.
 
+## Supported environments
+
+- macOS with bash or zsh;
+- Linux, with direct package examples for Ubuntu/Debian and Fedora;
+- 64-bit Windows with PowerShell;
+- Windows Subsystem for Linux;
+- Codex, Claude Code, other `SKILL.md`-aware agents, and agent-free CLI use.
+
+Required: Python 3.10 or newer and `pdfplumber`. Git is convenient but not mandatory. OCRmyPDF, Tesseract, Ghostscript, and matching Tesseract language data are only required for scanned or image-only pages.
+
 ## Choose how to install it
 
 ### Standalone CLI or another agent
 
-Clone the repository anywhere convenient:
+macOS, Linux, or Windows Subsystem for Linux:
 
 ```bash
 git clone https://github.com/luqav/academic-pdf-to-markdown-skill.git
 cd academic-pdf-to-markdown-skill
 ```
+
+Windows PowerShell:
+
+```powershell
+git clone https://github.com/luqav/academic-pdf-to-markdown-skill.git
+Set-Location academic-pdf-to-markdown-skill
+```
+
+Without Git, download the repository's [current source ZIP](https://github.com/luqav/academic-pdf-to-markdown-skill/archive/refs/heads/main.zip), extract it, and open a terminal in the extracted folder.
 
 Agents without native skill discovery can still use the toolkit: give the agent access to the repository, ask it to read [SKILL.md](SKILL.md), and have it execute the included scripts. You can also ignore the agent instructions and use the CLI directly.
 
@@ -41,6 +60,16 @@ git clone https://github.com/luqav/academic-pdf-to-markdown-skill.git \
 cd "${CODEX_HOME:-$HOME/.codex}/skills/academic-pdf-to-markdown"
 ```
 
+Windows PowerShell with the default Codex home:
+
+```powershell
+git clone https://github.com/luqav/academic-pdf-to-markdown-skill.git `
+  "$env:USERPROFILE\.codex\skills\academic-pdf-to-markdown"
+Set-Location "$env:USERPROFILE\.codex\skills\academic-pdf-to-markdown"
+```
+
+If `CODEX_HOME` is configured, place the skill in its `skills` subdirectory instead.
+
 Start a new Codex task after installation so the skill is discovered. Invoke it explicitly with `$academic-pdf-to-markdown`, or describe a matching PDF-conversion task.
 
 ### Claude Code
@@ -53,11 +82,21 @@ git clone https://github.com/luqav/academic-pdf-to-markdown-skill.git \
 cd "$HOME/.claude/skills/academic-pdf-to-markdown"
 ```
 
+Windows PowerShell:
+
+```powershell
+git clone https://github.com/luqav/academic-pdf-to-markdown-skill.git `
+  "$env:USERPROFILE\.claude\skills\academic-pdf-to-markdown"
+Set-Location "$env:USERPROFILE\.claude\skills\academic-pdf-to-markdown"
+```
+
 Claude Code can discover the skill from its description or invoke it directly as `/academic-pdf-to-markdown`. A project-local installation can instead live at `.claude/skills/academic-pdf-to-markdown/`. See the official [Claude Code skills documentation](https://code.claude.com/docs/en/skills) for discovery scopes and invocation behavior.
 
 ### Install the Python dependency
 
-Whichever location you choose, create an isolated environment inside the cloned repository:
+Whichever location you choose, create an isolated environment inside the cloned repository.
+
+macOS, Linux, or WSL:
 
 ```bash
 python3 -m venv .venv
@@ -65,7 +104,23 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
+Windows PowerShell:
+
+```powershell
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
 Python 3.10 or newer is required.
+
+Confirm the installation:
+
+```bash
+python scripts/pdf_to_markdown.py --check
+```
+
+On Windows, use `py` instead of `python` where necessary. A native-text PDF is ready to convert when Python and `pdfplumber` show `OK`; OCRmyPDF may remain `OPTIONAL` until scanned documents are needed.
 
 ## Use it with an agent
 
@@ -120,6 +175,15 @@ python scripts/pdf_to_markdown.py "/path/to/pdfs" \
   --language eng+deu
 ```
 
+The same conversion in Windows PowerShell:
+
+```powershell
+python scripts\pdf_to_markdown.py "C:\path\to\pdfs" `
+  --output "C:\path\to\markdown" `
+  --recursive `
+  --language eng+deu
+```
+
 The default `--ocr auto` policy first tries native PDF text extraction. If it detects image-only pages, it runs OCRmyPDF once and then extracts the searchable result. Use `--ocr never` only when explicit incomplete-page warnings are acceptable.
 
 Existing Markdown and report files are protected by default. Use `--force` only when you intentionally want to replace them.
@@ -131,21 +195,47 @@ Native-text PDFs only require the Python dependency above. Scanned PDFs addition
 macOS with Homebrew:
 
 ```bash
-brew install ocrmypdf tesseract tesseract-lang
+brew install ocrmypdf tesseract-lang
 ```
 
-Ubuntu or Debian:
+Ubuntu, Debian, or Ubuntu under WSL:
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y ocrmypdf tesseract-ocr tesseract-ocr-eng tesseract-ocr-deu
+sudo apt-get install -y ocrmypdf tesseract-ocr-eng tesseract-ocr-deu
 ```
+
+Fedora:
+
+```bash
+sudo dnf install -y ocrmypdf tesseract-osd
+```
+
+Native 64-bit Windows starts with Python and Tesseract:
+
+```powershell
+winget install -e --id Python.Python.3.12
+winget install -e --id UB-Mannheim.TesseractOCR
+```
+
+Then install the current 64-bit [Ghostscript build from Artifex](https://ghostscript.com/releases/gsdnld.html), reopen PowerShell, activate the repository's virtual environment, and install OCRmyPDF:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+python -m pip install ocrmypdf
+```
+
+OCRmyPDF does not support 32-bit Windows. For other Linux distributions, FreeBSD, Docker, or alternative package managers, follow the official [OCRmyPDF installation guide](https://ocrmypdf.readthedocs.io/en/latest/installation.html).
+
+When installing Tesseract, include the language data used in `--language`. English is `eng`, German is `deu`, and multiple languages use `+`, for example `eng+deu`.
 
 List installed OCR languages with:
 
 ```bash
 tesseract --list-langs
 ```
+
+On Windows, if PowerShell blocks virtual-environment activation, consult Python's official [`venv` activation guidance](https://docs.python.org/3/library/venv.html). Prefer a process- or user-scoped fix; do not weaken machine-wide security settings just to run this tool.
 
 ## Output and verification
 
@@ -162,6 +252,13 @@ Verify the bundle at any time:
 ```bash
 python scripts/verify_conversion.py "/path/to/paper.md" \
   --source "/path/to/paper.pdf"
+```
+
+Windows PowerShell:
+
+```powershell
+python scripts\verify_conversion.py "C:\path\to\paper.md" `
+  --source "C:\path\to\paper.pdf"
 ```
 
 Verification checks the source and Markdown hashes, page count, page-marker sequence, report schema, and report completeness. For academic quotation, also compare the relevant rendered PDF page visually and cite the publication’s printed or PDF pagination rather than Markdown line numbers.
@@ -187,3 +284,5 @@ Respect licenses, machine-readable rights reservations, retention requirements, 
 ## License
 
 The original code and documentation in this repository are released under the [MIT License](LICENSE).
+
+Third-party tools are not bundled or relicensed by this repository. `pdfplumber`, OCRmyPDF, Tesseract, and Ghostscript remain subject to their respective licenses; review them for redistribution, hosted services, or commercial deployment.
