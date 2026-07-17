@@ -1,0 +1,4 @@
+interface:
+  display_name: "Academic PDF to Markdown"
+  short_description: "Page-faithful PDF ingestion for research"
+  default_prompt: "Use $academic-pdf-to-markdown to convert these PDFs into page-anchored Markdown with a reproducible integrity report."
