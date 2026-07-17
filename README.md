@@ -1,6 +1,6 @@
-# Academic PDF to Markdown Skill
+# Academic PDF to Markdown
 
-Convert born-digital or scanned academic PDFs into reusable, page-anchored Markdown without asking an LLM to parse or OCR the document again on every use.
+An agent-portable skill and standalone CLI for converting born-digital or scanned academic PDFs into reusable, page-anchored Markdown. Convert a source once, verify it, and let your research workflow reuse the Markdown instead of asking an LLM to parse or OCR the PDF again on every use.
 
 The skill keeps the original PDF as the source of record and creates:
 
@@ -8,7 +8,9 @@ The skill keeps the original PDF as the source of record and creates:
 - a machine-readable conversion report with page-level warnings;
 - SHA-256 hashes that bind both outputs to the exact source file.
 
-Extraction and optional OCR run locally. The skill requires no API key and does not use an LLM or network service as its extraction engine.
+Extraction and optional OCR run locally. The toolkit requires no model-provider API key and does not use an LLM or network service as its extraction engine.
+
+Use it with Codex, Claude Code, another agent that supports `SKILL.md`, or directly from the command line without an AI assistant.
 
 ## What “page-faithful” means
 
@@ -16,7 +18,20 @@ The converter preserves physical page boundaries, extracted line order, and with
 
 Complex tables, equations, multi-column layouts, marginalia, and poor scans can still require visual checking against the original PDF.
 
-## Install as a Codex skill
+## Choose how to install it
+
+### Standalone CLI or another agent
+
+Clone the repository anywhere convenient:
+
+```bash
+git clone https://github.com/luqav/academic-pdf-to-markdown-skill.git
+cd academic-pdf-to-markdown-skill
+```
+
+Agents without native skill discovery can still use the toolkit: give the agent access to the repository, ask it to read [SKILL.md](SKILL.md), and have it execute the included scripts. You can also ignore the agent instructions and use the CLI directly.
+
+### Codex
 
 Clone the repository into your Codex skills directory:
 
@@ -26,7 +41,23 @@ git clone https://github.com/luqav/academic-pdf-to-markdown-skill.git \
 cd "${CODEX_HOME:-$HOME/.codex}/skills/academic-pdf-to-markdown"
 ```
 
-Create an isolated Python environment and install the required package:
+Start a new Codex task after installation so the skill is discovered. Invoke it explicitly with `$academic-pdf-to-markdown`, or describe a matching PDF-conversion task.
+
+### Claude Code
+
+Install it as a personal Claude Code skill available across projects:
+
+```bash
+git clone https://github.com/luqav/academic-pdf-to-markdown-skill.git \
+  "$HOME/.claude/skills/academic-pdf-to-markdown"
+cd "$HOME/.claude/skills/academic-pdf-to-markdown"
+```
+
+Claude Code can discover the skill from its description or invoke it directly as `/academic-pdf-to-markdown`. A project-local installation can instead live at `.claude/skills/academic-pdf-to-markdown/`. See the official [Claude Code skills documentation](https://code.claude.com/docs/en/skills) for discovery scopes and invocation behavior.
+
+### Install the Python dependency
+
+Whichever location you choose, create an isolated environment inside the cloned repository:
 
 ```bash
 python3 -m venv .venv
@@ -34,27 +65,37 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-Python 3.10 or newer is required. Start a new Codex task after installation so the skill is discovered.
+Python 3.10 or newer is required.
 
-## Use it with Codex
+## Use it with an agent
 
-Attach or identify the PDF files and ask Codex, for example:
+Attach or identify the PDF files and give your agent a concrete request.
+
+Codex example:
 
 ```text
 Use $academic-pdf-to-markdown to convert these papers into page-anchored
 Markdown, run OCR only where necessary, and verify every output bundle.
 ```
 
-For a specific folder:
+Claude Code example:
 
 ```text
-Use $academic-pdf-to-markdown on /path/to/papers. Store the Markdown files in
-/path/to/research-cache, use English and German OCR, and report all warned pages.
+/academic-pdf-to-markdown Convert /path/to/papers into /path/to/research-cache.
+Use English and German OCR, verify every bundle, and report all warned pages.
 ```
 
-Codex follows [SKILL.md](SKILL.md), runs the deterministic scripts, reviews warnings, and reports which pages need manual comparison with the PDF.
+Generic agent example:
 
-## Use the converter directly
+```text
+Read SKILL.md in this repository and follow it to convert /path/to/papers.
+Keep page anchors, run OCR only where necessary, verify every output, and report
+which pages need manual comparison with the original PDF.
+```
+
+The portable workflow in [SKILL.md](SKILL.md) tells the agent to run the deterministic scripts, inspect warnings, preserve provenance, and avoid inventing missing content.
+
+## Use the CLI directly
 
 Check the local runtime:
 
